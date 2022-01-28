@@ -1,6 +1,6 @@
-package fr.northborders.walktracker.data.network.model
+package fr.northborders.walktracker.domain.model
 
-data class PhotoDto(
+data class Photo(
     val id: String,
     val secret: String,
     val server: String,

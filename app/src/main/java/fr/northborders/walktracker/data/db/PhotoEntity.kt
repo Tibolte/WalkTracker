@@ -2,6 +2,7 @@ package fr.northborders.walktracker.data.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import fr.northborders.walktracker.domain.model.Photo
 
 @Entity(tableName = "photos")
 data class PhotoEntity(
@@ -10,4 +11,13 @@ data class PhotoEntity(
     val secret: String,
     val server: String,
     val farm: String
-)
+) {
+    fun toPhoto(): Photo {
+        return Photo(
+            id,
+            secret,
+            server,
+            farm
+        )
+    }
+}
