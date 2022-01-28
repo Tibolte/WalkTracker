@@ -1,10 +1,20 @@
 package fr.northborders.walktracker
 
 import fr.northborders.walktracker.data.db.PhotoEntity
+import fr.northborders.walktracker.data.network.model.PhotoDto
 import java.util.concurrent.ThreadLocalRandom
 
 class PhotoFactory {
     companion object Factory {
+
+        fun makePhotoDto(): PhotoDto {
+            return PhotoDto(
+                randomString(),
+                randomString(),
+                randomString(),
+                randomString()
+            )
+        }
 
         fun makePhotoEntity(): PhotoEntity {
             return PhotoEntity(
