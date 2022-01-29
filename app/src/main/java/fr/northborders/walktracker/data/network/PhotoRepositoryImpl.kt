@@ -3,6 +3,7 @@ package fr.northborders.walktracker.data.network
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
+import arrow.core.None
 import fr.northborders.walktracker.core.exception.Failure
 import fr.northborders.walktracker.core.exception.Failure.ServerError
 import fr.northborders.walktracker.core.exception.Failure.NetworkConnection
@@ -25,15 +26,16 @@ class PhotoRepositoryImpl @Inject constructor(
         return when (networkHandler.isNetworkAvailable()) {
             true -> {
                 val response = service.search(lat = lat, lon = lon, radius = "0.1")
-                if (response.isSuccessful) {
-                    val data = response.body()
-                    if (data != null) {
-                        Right(data.photos.photo.first().toPhoto())
-                    } else {
-                        Left(ServerError)
+                when (response.isSuccessful) {
+                    true -> {
+                        val data = response.body()
+                        if (data != null) {
+                            Right(data.photos.photo.first().toPhoto())
+                        } else {
+                            Left(ServerError)
+                        }
                     }
-                } else {
-                    Left(ServerError)
+                    false -> Left(ServerError)
                 }
             }
             false -> Left(NetworkConnection)
@@ -50,7 +52,12 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deletePhotos() {
-        photoDao.clearAll()
+    override suspend fun deletePhotos(): Either<Failure, None> {
+        return try {
+            photoDao.clearAll()
+            Right(None)
+        } catch (e: Exception) {
+            Left(DatabaseError)
+        }
     }
 }
