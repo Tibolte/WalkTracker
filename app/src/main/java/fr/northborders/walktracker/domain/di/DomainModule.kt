@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import fr.northborders.walktracker.domain.DeletePhotos
 import fr.northborders.walktracker.domain.GetPhoto
 import fr.northborders.walktracker.domain.GetPhotos
 import fr.northborders.walktracker.domain.PhotoRepository
@@ -21,4 +22,9 @@ class DomainModule {
     @Singleton
     fun provideGetPhotosUseCase(photoRepository: PhotoRepository) =
         GetPhotos(photoRepository)
+
+    @Provides
+    @Singleton
+    fun provideDeletePhotosUseCase(photoRepository: PhotoRepository) =
+        DeletePhotos(photoRepository)
 }
