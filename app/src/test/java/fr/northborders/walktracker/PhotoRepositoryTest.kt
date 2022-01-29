@@ -2,11 +2,14 @@ package fr.northborders.walktracker
 
 import arrow.core.Either.Left
 import arrow.core.Either.Right
+import arrow.core.None
 import com.google.common.truth.Truth
 import fr.northborders.walktracker.core.exception.Failure.ServerError
 import fr.northborders.walktracker.core.exception.Failure.NetworkConnection
+import fr.northborders.walktracker.core.exception.Failure.DatabaseError
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.data.db.PhotoDao
+import fr.northborders.walktracker.data.db.PhotoEntity
 import fr.northborders.walktracker.data.network.PhotoRepositoryImpl
 import fr.northborders.walktracker.data.network.PhotoService
 import fr.northborders.walktracker.data.network.model.PhotoDto
@@ -21,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
+import java.lang.Exception
 
 class PhotoRepositoryTest {
 
@@ -85,6 +89,39 @@ class PhotoRepositoryTest {
         Truth.assertThat(result).isEqualTo(Left(ServerError))
     }
 
+    @Test fun `photos repository should return DatabaseError if no photos are found`() = runBlocking {
+        coEvery { photoDao.getAllPhotos() } returns emptyList()
+
+        val result = photoRepositoryImpl.getAllPhotos()
+
+        Truth.assertThat(result).isEqualTo(Left(DatabaseError))
+    }
+
+    @Test fun `photos repository should return list if photos are found`() = runBlocking {
+        coEvery { photoDao.getAllPhotos() } returns listOf(makeFakePhotoEntity("1"))
+
+        val result = photoRepositoryImpl.getAllPhotos()
+
+        Truth.assertThat(result).isEqualTo(Right(listOf(makeFakePhoto("1"))))
+    }
+
+    @Test fun `photos repository should return error if photos db deletion fails`() = runBlocking {
+        coEvery { photoDao.clearAll()} throws Exception()
+
+        val result = photoRepositoryImpl.deletePhotos()
+
+        Truth.assertThat(result).isEqualTo(Left(DatabaseError))
+    }
+
+    @Test fun `photos repository should return Right(None) if photos db deletion succeeds`() = runBlocking {
+        coEvery { photoDao.clearAll()} returns Unit
+
+        val result = photoRepositoryImpl.deletePhotos()
+
+        Truth.assertThat(result).isEqualTo(Right(None))
+    }
+
+    private fun makeFakePhotoEntity(id: String) = PhotoEntity(1, id, id, id, id)
     private fun makeFakePhotoDto(id: String) = PhotoDto(id, id, id, id)
     private fun makeFakePhoto(id: String) = Photo(id, id, id, id)
 }
