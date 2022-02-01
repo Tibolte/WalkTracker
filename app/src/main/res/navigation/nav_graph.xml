@@ -6,6 +6,6 @@
 
     <fragment
         android:id="@+id/photosFragment"
-        android:name="fr.northborders.walktracker.presentation.PhotosFragment"
+        android:name="fr.northborders.walktracker.features.photos.presentation.PhotosFragment"
         android:label="PhotosFragment" />
 </navigation>

@@ -1,7 +1,7 @@
 package fr.northborders.walktracker
 
-import fr.northborders.walktracker.data.db.PhotoEntity
-import fr.northborders.walktracker.data.network.model.PhotoDto
+import fr.northborders.walktracker.features.photos.data.db.PhotoEntity
+import fr.northborders.walktracker.features.photos.data.network.model.PhotoDto
 import java.util.concurrent.ThreadLocalRandom
 
 class PhotoFactory {

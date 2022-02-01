@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WalkTracker">
         <activity
-            android:name=".presentation.MainActivity"
+            android:name="fr.northborders.walktracker.features.photos.presentation.MainActivity"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>
@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".domain.TrackingService"
+        <service android:name=".features.tracking.TrackingService"
             android:foregroundServiceType="location"/>
     </application>
 

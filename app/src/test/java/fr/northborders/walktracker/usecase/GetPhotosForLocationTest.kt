@@ -1,9 +1,9 @@
 package fr.northborders.walktracker.usecase
 
 import arrow.core.Either.Right
-import fr.northborders.walktracker.domain.GetPhotosForLocation
-import fr.northborders.walktracker.domain.PhotoRepository
-import fr.northborders.walktracker.domain.model.Photo
+import fr.northborders.walktracker.features.photos.domain.GetPhotosForLocation
+import fr.northborders.walktracker.features.photos.domain.PhotoRepository
+import fr.northborders.walktracker.features.photos.domain.model.Photo
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
