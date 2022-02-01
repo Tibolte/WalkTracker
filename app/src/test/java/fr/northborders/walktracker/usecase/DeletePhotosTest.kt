@@ -2,8 +2,8 @@ package fr.northborders.walktracker.usecase
 
 import arrow.core.Either
 import arrow.core.None
-import fr.northborders.walktracker.domain.DeletePhotos
-import fr.northborders.walktracker.domain.PhotoRepository
+import fr.northborders.walktracker.features.photos.domain.DeletePhotos
+import fr.northborders.walktracker.features.photos.domain.PhotoRepository
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
