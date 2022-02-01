@@ -2,6 +2,10 @@
     <string name="app_name">WalkTracker</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
+    <string name="delete_photos">Delete photos</string>
     <string name="walk_in_progress">Walk in progress</string>
     <string name="permission_rationale">You need to accept location permissions to use this app.</string>
+    <string name="failure_network_connection">No Network Connection.</string>
+    <string name="failure_server_error">Server Error</string>
+    <string name="failure_photos_list_unavailable">Photos Unavailable.</string>
 </resources>

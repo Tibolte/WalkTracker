@@ -24,7 +24,7 @@ class PhotoDaoTest: DbTest() {
         val photo2 = makePhotoEntity()
         val photo3 = makePhotoEntity()
 
-        photoDao.insert(listOf(photo1, photo2, photo3))
+        photoDao.insertList(listOf(photo1, photo2, photo3))
         val actual = photoDao.getAllPhotos()
 
         Truth.assertThat(actual).contains(photo1)
@@ -37,8 +37,8 @@ class PhotoDaoTest: DbTest() {
         val photo = makePhotoEntity()
         val expected = listOf(photo)
 
-        photoDao.insert(listOf(photo))
-        photoDao.insert(emptyList())
+        photoDao.insertList(listOf(photo))
+        photoDao.insertList(emptyList())
         val actual = photoDao.getAllPhotos()
 
         Truth.assertThat(actual).isEqualTo(expected)
@@ -49,9 +49,9 @@ class PhotoDaoTest: DbTest() {
         val photo = makePhotoEntity()
         val expected = listOf(photo)
 
-        photoDao.insert(listOf(photo))
-        photoDao.insert(listOf(photo))
-        photoDao.insert(listOf(photo))
+        photoDao.insertList(listOf(photo))
+        photoDao.insertList(listOf(photo))
+        photoDao.insertList(listOf(photo))
         val actual = photoDao.getAllPhotos()
 
         Truth.assertThat(actual).isEqualTo(expected)
@@ -61,7 +61,7 @@ class PhotoDaoTest: DbTest() {
     fun insert_photos_and_clear_all() = runBlocking {
         val expected = emptyList<PhotoEntity>()
 
-        photoDao.insert((0..5).map { makePhotoEntity() })
+        photoDao.insertList((0..5).map { makePhotoEntity() })
         photoDao.clearAll()
         val actual = photoDao.getAllPhotos()
 

@@ -11,12 +11,12 @@ object Constants {
 
     const val TIMER_UPDATE_INTERVAL = 50L
 
-    const val PREFERENCES_SERVICE = "preferences_service"
-    const val SERVICE_STATE = "service_state"
-
     const val REQUEST_CODE_LOCATION_PERMISSION = 0
 
     const val SMALLEST_DISPLACEMENT_100_METERS = 100F
     const val INTERVAL_TIME = 60
     const val FASTEST_INTERVAL_TIME = 30
+
+    const val EXTRA_PHOTO = "photo"
+    const val INTENT_BROADCAST_PHOTO = "intent_broadcast_photo"
 }

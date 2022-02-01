@@ -23,7 +23,7 @@ class DeletePhotosTest {
         MockKAnnotations.init(this)
         deletePhotos = DeletePhotos(photoRepository)
         coEvery { photoRepository.deletePhotos() } returns Either.Right(
-            None
+            emptyList()
         )
     }
 

@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_LOW
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Build
 import android.os.Looper
 import androidx.annotation.RequiresApi
@@ -13,6 +12,8 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -21,16 +22,19 @@ import dagger.hilt.android.AndroidEntryPoint
 import fr.northborders.walktracker.Constants.ACTION_PAUSE_SERVICE
 import fr.northborders.walktracker.Constants.ACTION_START_OR_RESUME_SERVICE
 import fr.northborders.walktracker.Constants.ACTION_STOP_SERVICE
+import fr.northborders.walktracker.Constants.EXTRA_PHOTO
 import fr.northborders.walktracker.Constants.FASTEST_INTERVAL_TIME
+import fr.northborders.walktracker.Constants.INTENT_BROADCAST_PHOTO
 import fr.northborders.walktracker.Constants.INTERVAL_TIME
 import fr.northborders.walktracker.Constants.NOTIFICATION_CHANNEL_ID
 import fr.northborders.walktracker.Constants.NOTIFICATION_CHANNEL_NAME
 import fr.northborders.walktracker.Constants.NOTIFICATION_ID
-import fr.northborders.walktracker.Constants.SERVICE_STATE
 import fr.northborders.walktracker.Constants.SMALLEST_DISPLACEMENT_100_METERS
 import fr.northborders.walktracker.Constants.TIMER_UPDATE_INTERVAL
-import fr.northborders.walktracker.R
+import fr.northborders.walktracker.core.exception.Failure
 import fr.northborders.walktracker.core.util.Utils
+import fr.northborders.walktracker.domain.GetPhotosForLocation.Params
+import fr.northborders.walktracker.domain.model.Photo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -51,7 +55,7 @@ class TrackingService : LifecycleService() {
     @Inject
     lateinit var notificationObserver: Observer<Long>
     @Inject
-    lateinit var sharedPreferences: SharedPreferences
+    lateinit var getPhotosForLocation: GetPhotosForLocation
 
     lateinit var locationCallback: LocationCallback
 
@@ -59,6 +63,10 @@ class TrackingService : LifecycleService() {
     private var timeWalkInMillis: Long = 0L
     private var isTracking: Boolean = false
     private var lastSecondTimestamp = 0L
+
+    companion object {
+        var isServiceRunning = false
+    }
 
     private fun postInitialValues() {
         timeWalkInSeconds.postValue(0L)
@@ -75,6 +83,16 @@ class TrackingService : LifecycleService() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 Timber.d("GOT NEW LOCATION: $locationResult!!.lastLocation")
+
+                val lastLocation = locationResult.lastLocation
+                val latitude = lastLocation.latitude.toBigDecimal().toPlainString()
+                val longitude = lastLocation.longitude.toBigDecimal().toPlainString()
+                getPhotosForLocation(Params(latitude, longitude), lifecycleScope) {
+                    it.fold (
+                            ::handlePhotoError,
+                            ::handleNewPhoto
+                    )
+                }
             }
         }
     }
@@ -97,8 +115,13 @@ class TrackingService : LifecycleService() {
         return super.onStartCommand(intent, flags, START_NOT_STICKY)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        isServiceRunning = false
+    }
+
     private fun stopService() {
-        saveServiceState(getString(R.string.stop))
+        isServiceRunning = false
         postInitialValues()
         timeWalkInSeconds.removeObserver(notificationObserver)
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
@@ -108,8 +131,8 @@ class TrackingService : LifecycleService() {
 
     private fun startForegroundService() {
         isTracking = true
+        isServiceRunning = true
         startTimer()
-        saveServiceState(getString(R.string.start))
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotification(notificationManager)
@@ -152,7 +175,6 @@ class TrackingService : LifecycleService() {
 
     @SuppressLint("MissingPermission")
     private fun subscribeToLocationUpdates() {
-        // TODO tweak parameters for every 100m
         if (Utils.hasLocationPermissions(this)) {
             val locationRequest = LocationRequest.create().apply {
                 priority = LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -160,18 +182,20 @@ class TrackingService : LifecycleService() {
                 interval = TimeUnit.SECONDS.toMillis(INTERVAL_TIME.toLong())
                 fastestInterval = TimeUnit.SECONDS.toMillis(FASTEST_INTERVAL_TIME.toLong())
             }
-            Looper.myLooper()?.let {
-                fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback,
-                    it
-                )
-            }
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback,
+                    Looper.getMainLooper()
+            )
         }
     }
 
-    private fun saveServiceState(state: String) {
-        sharedPreferences
-            .edit()
-            .putString(SERVICE_STATE, state)
-            .apply()
+    private fun handlePhotoError(failure: Failure) {
+        Timber.e("Couldn't retrieve photo for last location ($failure)")
+    }
+
+    private fun handleNewPhoto(photo: Photo) {
+        Timber.d("Retrieved photo for last location: $photo")
+        val intent = Intent(INTENT_BROADCAST_PHOTO)
+        intent.putExtra(EXTRA_PHOTO, photo.toPhotoUI())
+        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
 }

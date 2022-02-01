@@ -1,17 +1,25 @@
 package fr.northborders.walktracker.presentation
 
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import android.os.Bundle
 import android.view.*
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import fr.northborders.walktracker.Constants.ACTION_START_OR_RESUME_SERVICE
 import fr.northborders.walktracker.Constants.ACTION_STOP_SERVICE
-import fr.northborders.walktracker.Constants.SERVICE_STATE
+import fr.northborders.walktracker.Constants.EXTRA_PHOTO
+import fr.northborders.walktracker.Constants.INTENT_BROADCAST_PHOTO
 import fr.northborders.walktracker.R
+import fr.northborders.walktracker.core.exception.Failure
+import fr.northborders.walktracker.core.extension.failure
+import fr.northborders.walktracker.core.extension.observe
 import fr.northborders.walktracker.databinding.FragmentPhotoListBinding
 import fr.northborders.walktracker.domain.TrackingService
+import fr.northborders.walktracker.presentation.model.PhotoUI
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -19,13 +27,20 @@ import javax.inject.Inject
 class PhotosFragment: Fragment() {
 
     @Inject
-    lateinit var sharedPreferences: SharedPreferences
+    lateinit var photosAdapter: PhotosAdapter
 
     private lateinit var binding: FragmentPhotoListBinding
-    private lateinit var toolbarMenu: Menu
+    private lateinit var photoReceiver: PhotoReceiver
+
+    private val photosViewModel: PhotosViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        with(photosViewModel) {
+            observe(photos, ::renderPhotosList)
+            failure(failure, ::handleFailure)
+        }
 
         setHasOptionsMenu(true)
     }
@@ -37,19 +52,39 @@ class PhotosFragment: Fragment() {
     ): View {
 
         binding = FragmentPhotoListBinding.inflate(inflater, container, false)
+        photoReceiver = PhotoReceiver()
+
+        binding.recyclerView.adapter = photosAdapter
+
+        // TODO check if called in right callback
+        photosAdapter.clearPhotoList()
+        loadPhotosList()
 
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(
+            photoReceiver,
+            IntentFilter(INTENT_BROADCAST_PHOTO)
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(photoReceiver)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_main, menu)
-        toolbarMenu = menu
-        val serviceState = sharedPreferences.getString(SERVICE_STATE, getString(R.string.stop))
 
-        toolbarMenu.findItem(R.id.action_start_stop).title = if (serviceState == getString(R.string.stop)) {
-            getString(R.string.start)
-        } else {
+        val isServiceRunning = TrackingService.isServiceRunning
+
+        menu.findItem(R.id.action_start_stop).title = if (isServiceRunning) {
             getString(R.string.stop)
+        } else {
+            getString(R.string.start)
         }
         super.onCreateOptionsMenu(menu, inflater)
     }
@@ -64,6 +99,9 @@ class PhotosFragment: Fragment() {
             Timber.d("Btn stop clicked")
             sendServiceCommand(ACTION_STOP_SERVICE)
             item.title = requireContext().getString(R.string.start)
+        } else if (item.title == getString(R.string.delete_photos)) {
+            Timber.d("Btn delete photos clicked")
+            deletePhotosList()
         }
 
         return super.onOptionsItemSelected(item)
@@ -73,6 +111,63 @@ class PhotosFragment: Fragment() {
         Intent(requireContext(), TrackingService::class.java).also {
             it.action = action
             requireContext().startService(it)
+        }
+    }
+
+    private fun loadPhotosList() {
+        showProgress()
+        photosViewModel.loadPhotos()
+    }
+
+    private fun deletePhotosList() {
+        showProgress()
+        photosViewModel.deletePhotos()
+    }
+
+    private fun handleFailure(failure: Failure?) {
+        when (failure) {
+            is Failure.NetworkConnection -> renderFailure(R.string.failure_network_connection)
+            is Failure.ServerError -> renderFailure(R.string.failure_server_error)
+            is Failure.DatabaseError -> renderFailure(R.string.failure_photos_list_unavailable)
+            else -> renderFailure(R.string.failure_server_error)
+        }
+    }
+
+    private fun renderPhotosList(photos: List<PhotoUI>) {
+        if (photos.isEmpty()) {
+            Timber.d("Photos list is empty")
+            photosAdapter.clearPhotoList()
+        } else {
+            Timber.d("Adding photo to adapter")
+            photosAdapter.addPhotos(photos)
+        }
+        hideProgress()
+    }
+
+    private fun renderFailure(@StringRes message: Int) {
+        hideProgress()
+        notify(message)
+    }
+
+    private fun notify(@StringRes message: Int) =
+        Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show()
+
+    private fun showProgress() = progressStatus(View.VISIBLE)
+
+    private fun hideProgress() = progressStatus(View.GONE)
+
+    private fun progressStatus(viewStatus: Int) {
+        binding.progressBar.visibility = viewStatus
+    }
+
+    private inner class PhotoReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val photo = intent.getParcelableExtra<PhotoUI>(EXTRA_PHOTO)
+            if (photo != null && photo.id.isNotEmpty()) {
+                Timber.d("BROADCAST RECEIVER sending photo $photo")
+                photosAdapter.addPhoto(photo)
+                binding.recyclerView.smoothScrollToPosition(0)
+            }
         }
     }
 }

@@ -77,9 +77,4 @@ class DataModule {
     @Singleton
     fun providePhotoRepository(networkHandler: NetworkHandler, photoDao: PhotoDao, photoService: PhotoService) =
         PhotoRepositoryImpl(networkHandler, photoService, photoDao) as PhotoRepository
-
-    @Provides
-    @Singleton
-    fun provideSharedPreferences(@ApplicationContext context: Context) =
-        context.getSharedPreferences(Constants.PREFERENCES_SERVICE, LifecycleService.MODE_PRIVATE)
 }

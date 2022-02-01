@@ -1,6 +1,5 @@
 package fr.northborders.walktracker.presentation
 
-import android.content.SharedPreferences
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.test.espresso.Espresso.onView
@@ -8,13 +7,13 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import fr.northborders.walktracker.R
 import fr.northborders.walktracker.util.launchFragmentInHiltContainer
-import io.mockk.every
 import io.mockk.mockkClass
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
+import fr.northborders.walktracker.domain.TrackingService
 
 @HiltAndroidTest
 class PhotosFragmentTests {
@@ -30,13 +29,11 @@ class PhotosFragmentTests {
     @Test
     fun test_menu_item_service_started() {
         val mockNavController = mockkClass(NavController::class)
-        val mockSharedPreferences = mockkClass(SharedPreferences::class)
 
-        every { mockSharedPreferences.getString(any(), any()) } returns "Start"
+        TrackingService.isServiceRunning = true
 
         launchFragmentInHiltContainer<PhotosFragment>(
         ) {
-            sharedPreferences = mockSharedPreferences
             Navigation.setViewNavController(requireView(), mockNavController)
         }
 
@@ -47,13 +44,11 @@ class PhotosFragmentTests {
     @Test
     fun test_menu_item_service_stopped() {
         val mockNavController = mockkClass(NavController::class)
-        val mockSharedPreferences = mockkClass(SharedPreferences::class)
 
-        every { mockSharedPreferences.getString(any(), any()) } returns "Stop"
+        TrackingService.isServiceRunning = false
 
         launchFragmentInHiltContainer<PhotosFragment>(
         ) {
-            sharedPreferences = mockSharedPreferences
             Navigation.setViewNavController(requireView(), mockNavController)
         }
 

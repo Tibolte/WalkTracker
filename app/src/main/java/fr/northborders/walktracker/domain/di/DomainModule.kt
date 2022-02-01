@@ -5,7 +5,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import fr.northborders.walktracker.domain.DeletePhotos
-import fr.northborders.walktracker.domain.GetPhoto
 import fr.northborders.walktracker.domain.GetPhotos
 import fr.northborders.walktracker.domain.PhotoRepository
 import javax.inject.Singleton
@@ -13,10 +12,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class DomainModule {
-    @Provides
-    @Singleton
-    fun provideGetPhotoUseCase(photoRepository: PhotoRepository) =
-        GetPhoto(photoRepository)
 
     @Provides
     @Singleton
@@ -25,6 +20,6 @@ class DomainModule {
 
     @Provides
     @Singleton
-    fun provideDeletePhotosUseCase(photoRepository: PhotoRepository) =
+    fun provideDeletePhotos(photoRepository: PhotoRepository) =
         DeletePhotos(photoRepository)
 }

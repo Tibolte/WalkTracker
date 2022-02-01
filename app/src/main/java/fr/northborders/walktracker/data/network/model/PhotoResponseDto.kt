@@ -1,5 +1,6 @@
 package fr.northborders.walktracker.data.network.model
 
+import fr.northborders.walktracker.data.db.PhotoEntity
 import fr.northborders.walktracker.domain.model.Photo
 
 data class PhotoResponseDto(
@@ -26,6 +27,15 @@ data class PhotoDto(
             secret,
             server,
             farm
+        )
+    }
+
+    fun toPhotoEntity(): PhotoEntity {
+        return PhotoEntity(
+            id = id,
+            secret = secret,
+            server = server,
+            farm = farm
         )
     }
 }

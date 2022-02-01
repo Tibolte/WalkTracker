@@ -3,16 +3,15 @@ package fr.northborders.walktracker.data.network
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import arrow.core.None
 import fr.northborders.walktracker.core.exception.Failure
 import fr.northborders.walktracker.core.exception.Failure.ServerError
 import fr.northborders.walktracker.core.exception.Failure.NetworkConnection
 import fr.northborders.walktracker.core.exception.Failure.DatabaseError
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.data.db.PhotoDao
+import fr.northborders.walktracker.data.network.model.PhotoListDto
 import fr.northborders.walktracker.domain.PhotoRepository
 import fr.northborders.walktracker.domain.model.Photo
-import retrofit2.Call
 import javax.inject.Inject
 
 class PhotoRepositoryImpl @Inject constructor(
@@ -21,17 +20,16 @@ class PhotoRepositoryImpl @Inject constructor(
     private val photoDao: PhotoDao
 ): PhotoRepository {
 
-    // TODO compare with pictures in database
     override suspend fun searchPhotoForLocation(lat: String, lon: String): Either<Failure, Photo> {
         return when (networkHandler.isNetworkAvailable()) {
             true -> {
                 val response = service.search(lat = lat, lon = lon, radius = "0.1")
                 when (response.isSuccessful) {
                     true -> {
-                        val data = response.body()
-                        if (data != null) {
-                            Right(data.photos.photo.first().toPhoto())
-                        } else {
+                        val photoListDto = response.body()?.photos
+                        if (photoListDto != null) {
+                            Right(extractAndSavePhoto(photoListDto))
+                        } else{
                             Left(ServerError)
                         }
                     }
@@ -52,12 +50,48 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deletePhotos(): Either<Failure, None> {
+    override suspend fun deletePhotos(): Either<Failure, List<Photo>> {
         return try {
             photoDao.clearAll()
-            Right(None)
+            Right(emptyList())
         } catch (e: Exception) {
             Left(DatabaseError)
         }
+    }
+
+    private suspend fun extractAndSavePhoto(photos: PhotoListDto): Photo {
+        val photosFromDb = photoDao.getAllPhotos()
+        if (photosFromDb.isEmpty()) {
+            val photoToInsert = photos.photo.random()
+            photoDao.insert(photoToInsert.toPhotoEntity())
+            return photoToInsert.toPhoto()
+        } else {
+            for (photo in photos.photo) {
+                if (photosFromDb.all { photoEntity -> photoEntity.id != photo.id }) {
+                    // return the photo from server if not found in db
+                    photoDao.insert(photo.toPhotoEntity())
+                    return photo.toPhoto()
+                }
+            }
+        }
+        return Photo("", "", "", "")
+//        val data = response.body()
+//        if (data?.photos != null) {
+//            val photosFromDb = photoDao.getAllPhotos()
+//            if (photosFromDb.isEmpty()) {
+//                val photoToInsert = data.photos.photo.random()
+//                photoDao.insert(photoToInsert.toPhotoEntity())
+//                return photoToInsert.toPhoto()
+//            } else {
+//                for (photo in data.photos.photo) {
+//                    if (photosFromDb.all { photoEntity -> photoEntity.id != photo.id }) {
+//                        // return the photo from server if not found in db
+//                        photoDao.insert(photo.toPhotoEntity())
+//                        return photo.toPhoto()
+//                    }
+//                }
+//            }
+//        }
+//        return Photo("", "", "", "")
     }
 }

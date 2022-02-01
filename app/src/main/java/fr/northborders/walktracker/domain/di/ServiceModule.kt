@@ -1,12 +1,10 @@
 package fr.northborders.walktracker.domain.di
 
-import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Observer
 import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.Module
@@ -18,6 +16,9 @@ import dagger.hilt.android.scopes.ServiceScoped
 import fr.northborders.walktracker.Constants
 import fr.northborders.walktracker.R
 import fr.northborders.walktracker.core.util.Utils
+import fr.northborders.walktracker.domain.DeletePhotos
+import fr.northborders.walktracker.domain.GetPhotosForLocation
+import fr.northborders.walktracker.domain.PhotoRepository
 import fr.northborders.walktracker.presentation.MainActivity
 
 @Module
@@ -67,4 +68,8 @@ class ServiceModule {
             .setContentText(Utils.getFormattedStopWatchTime(it * 1000L))
         notificationManager.notify(Constants.NOTIFICATION_ID, notification.build())
     }
+
+    @ServiceScoped
+    @Provides
+    fun provideGetPhotosForLocation(photoRepository: PhotoRepository) = GetPhotosForLocation(photoRepository)
 }
