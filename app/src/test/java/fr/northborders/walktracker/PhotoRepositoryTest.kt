@@ -61,14 +61,16 @@ class PhotoRepositoryTest {
     }
 
     @Test
-    fun `should return the first photo from the server response`() = runBlocking {
+    fun `should return one photo from the server response if db is empty`() = runBlocking {
         every { networkHandler.isNetworkAvailable() } returns true
         every { photosResponseDto.body() } returns photoListResponse
         every { photosResponseDto.isSuccessful } returns true
+        coEvery { photoDao.getAllPhotos() } returns emptyList()
+        coEvery { photoDao.insert(any()) } returns Unit
         coEvery { photoService.search(any(), any(), any(), any()) } returns photosResponseDto
 
         val result = photoRepositoryImpl.searchPhotoForLocation("", "")
-        Truth.assertThat(result).isEqualTo(Right(makeFakePhoto("1")))
+        Truth.assertThat(result).isInstanceOf(Right::class.java)
     }
 
     @Test fun `photos service should return network failure when no connection`() = runBlocking {
@@ -118,7 +120,7 @@ class PhotoRepositoryTest {
 
         val result = photoRepositoryImpl.deletePhotos()
 
-        Truth.assertThat(result).isEqualTo(Right(None))
+        Truth.assertThat(result).isEqualTo(Right(emptyList<Photo>()))
     }
 
     private fun makeFakePhotoEntity(id: String) = PhotoEntity(1, id, id, id, id)

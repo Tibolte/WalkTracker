@@ -1,6 +1,7 @@
 package fr.northborders.walktracker.data.di
 
 import android.content.Context
+import androidx.lifecycle.LifecycleService
 import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -9,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import fr.northborders.walktracker.Constants
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.data.db.PhotoDao
 import fr.northborders.walktracker.data.db.PhotoDatabase

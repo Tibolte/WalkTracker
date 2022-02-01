@@ -7,4 +7,7 @@
         android:id="@+id/action_start_stop"
         android:title="@string/start"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/action_delete_photos"
+        android:title="@string/delete_photos" />
 </menu>

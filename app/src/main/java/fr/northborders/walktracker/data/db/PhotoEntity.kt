@@ -6,7 +6,7 @@ import fr.northborders.walktracker.domain.model.Photo
 
 @Entity(tableName = "photos")
 data class PhotoEntity(
-    @PrimaryKey(autoGenerate = true) val photoId: Int,
+    @PrimaryKey(autoGenerate = true) val photoId: Int = 0,
     val id: String,
     val secret: String,
     val server: String,

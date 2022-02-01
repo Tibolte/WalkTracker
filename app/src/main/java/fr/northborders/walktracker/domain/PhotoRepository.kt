@@ -11,5 +11,5 @@ interface PhotoRepository {
 
     suspend fun getAllPhotos(): Either<Failure, List<Photo>>
 
-    suspend fun deletePhotos(): Either<Failure, None>
+    suspend fun deletePhotos(): Either<Failure, List<Photo>>
 }
