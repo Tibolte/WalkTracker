@@ -89,3 +89,5 @@ We can just start tracking and trigger the route at the same time to simulate a 
 
 Keep track of your different walks, and trace them on a map view with polylines.
 
+## MAD Score
+![summary](/assets/summary.png)
