@@ -59,6 +59,30 @@ Let's take each element one by one and see how it links to this project:
 - **Model** - This is our Room database (*PhotoDatabase* with *PhotoEntity* objects). (data layer)
 - **Remote data source** - *PhotoService* which call the Flickr API. (data layer)
 
+## Challenges
+
+### Location tracking
+
+For this purpose you need to perform location updates in the background. A service seems to be a good solution:  
+
+> A Service is an application component that can perform long-running operations in the background  
+
+Then the other thing to figure out is to choose which service from three different types: *Background*, *Foreground* and *Bound*.  
+Each of these terms are misleading because it is not describing the behavior of how each service are used,  
+but it is describing how they are terminated.  
+
+- A Background Service is a service that runs only when the app is running so it’ll get terminated when the app is terminated.  
+- A Foreground Service is a service that stays alive even when the app is terminated.  
+- And a Bound Service is a service that runs only if the component it is bound to is still active.  
+
+I decided to opt for a foreground service as I have more guarantees that the location will be tracked even though the app is killed.  
+Plus, we can associate a notification to it to notify the user that his location is being tracked.
+
+### Testing
+
+Testing location tracking can seem difficult. But thankfully you can trace a route via your Android emulator.  
+We can just start tracking and trigger the route at the same time to simulate a hike.
+
 ## Improvements
 
 [Compose](https://developer.android.com/jetpack/compose) would have been welcome. I'm not 100% fluent on it so i didn't take risk of running into any hiccups.  
