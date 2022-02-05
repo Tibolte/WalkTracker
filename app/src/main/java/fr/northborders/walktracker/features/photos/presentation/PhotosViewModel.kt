@@ -30,6 +30,15 @@ class PhotosViewModel @Inject constructor(
     fun deletePhotos() =
         deletePhotos(None) { it.fold(::handleFailure, ::handlePhotos) }
 
+    fun addPhoto(photoUI: PhotoUI) {
+        if (_photos.value.isNullOrEmpty()) {
+            _photos.value = listOf()
+        }
+        val list = _photos.value?.toMutableList()
+        list?.add(photoUI)
+        _photos.value = list
+    }
+
     private fun handlePhotos(photos: List<Photo>) {
         _photos.value = photos.map { it.toPhotoUI() }
     }
