@@ -11,7 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.features.photos.data.db.PhotoDao
-import fr.northborders.walktracker.features.photos.data.db.PhotoDatabase
+import fr.northborders.walktracker.core.cache.MainDatabase
 import fr.northborders.walktracker.features.photos.data.network.PhotoRepositoryImpl
 import fr.northborders.walktracker.features.photos.data.network.PhotoService
 import fr.northborders.walktracker.features.photos.domain.PhotoRepository
@@ -27,16 +27,16 @@ class ApplicationModule {
     @Provides
     fun provideDatabase(
         @ApplicationContext context: Context
-    ): PhotoDatabase =
+    ): MainDatabase =
         Room.databaseBuilder(
             context,
-            PhotoDatabase::class.java,
+            MainDatabase::class.java,
             "photos_db"
         ).build()
 
     @Singleton
     @Provides
-    fun providePhotoDao(db: PhotoDatabase) = db.photoDao()
+    fun providePhotoDao(db: MainDatabase) = db.photoDao()
 
     @Provides
     @Singleton
