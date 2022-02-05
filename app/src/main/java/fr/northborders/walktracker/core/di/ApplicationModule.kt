@@ -12,7 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.features.photos.data.db.PhotoDao
 import fr.northborders.walktracker.core.cache.MainDatabase
-import fr.northborders.walktracker.features.photos.data.network.PhotoRepositoryImpl
+import fr.northborders.walktracker.features.photos.data.PhotoRepositoryImpl
 import fr.northborders.walktracker.features.photos.data.network.PhotoService
 import fr.northborders.walktracker.features.photos.domain.PhotoRepository
 import okhttp3.OkHttpClient
