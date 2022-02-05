@@ -10,9 +10,7 @@ import fr.northborders.walktracker.features.photos.presentation.model.PhotoUI
 import fr.northborders.walktracker.databinding.ItemPhotoBinding
 
 class PhotosAdapter()
-    : ListAdapter<PhotoUI,PhotosAdapter.ViewHolder>(DiffCallback) {
-
-    private val photos: MutableList<PhotoUI> = mutableListOf()
+    : ListAdapter<PhotoUI,PhotosAdapter.ViewHolder>(DiffCallback()) {
 
     class ViewHolder(
         private val binding: ItemPhotoBinding
@@ -28,33 +26,12 @@ class PhotosAdapter()
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val photo = photos[position]
+        val photo = getItem(position)
         holder.bind(photo)
-    }
-
-    override fun getItemCount(): Int = photos.size
-
-    fun addPhoto(photo: PhotoUI) {
-        photos.add(0, photo)
-        notifyItemInserted(0)
-    }
-
-    fun addPhotos(photoItems: List<PhotoUI>) {
-        for (photo in photoItems) { // have to do this because DiffCallback doesn't seem to work?
-            if (photos.all { currentPhoto -> currentPhoto.id != photo.id }) {
-                photos.add(photo)
-            }
-        }
-        submitList(photos)
-    }
-
-    fun clearPhotoList() {
-        photos.clear()
-        notifyDataSetChanged()
     }
 }
 
-object DiffCallback: DiffUtil.ItemCallback<PhotoUI>() {
+private class DiffCallback: DiffUtil.ItemCallback<PhotoUI>() {
     override fun areItemsTheSame(oldItem: PhotoUI, newItem: PhotoUI): Boolean {
         return oldItem.id == newItem.id
     }

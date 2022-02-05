@@ -9,7 +9,7 @@ import fr.northborders.walktracker.core.exception.Failure.DatabaseError
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.features.photos.data.db.PhotoDao
 import fr.northborders.walktracker.features.photos.data.db.PhotoEntity
-import fr.northborders.walktracker.features.photos.data.network.PhotoRepositoryImpl
+import fr.northborders.walktracker.features.photos.data.PhotoRepositoryImpl
 import fr.northborders.walktracker.features.photos.data.network.PhotoService
 import fr.northborders.walktracker.features.photos.data.network.model.PhotoDto
 import fr.northborders.walktracker.features.photos.data.network.model.PhotoListDto

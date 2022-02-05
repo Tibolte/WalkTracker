@@ -56,8 +56,8 @@ class PhotosFragment: Fragment() {
 
         binding.recyclerView.adapter = photosAdapter
 
-        // TODO check if called in right callback
-        photosAdapter.clearPhotoList()
+        // clear photos first
+        photosAdapter.submitList(listOf())
         loadPhotosList()
 
         return binding.root
@@ -134,13 +134,7 @@ class PhotosFragment: Fragment() {
     }
 
     private fun renderPhotosList(photos: List<PhotoUI>) {
-        if (photos.isEmpty()) {
-            Timber.d("Photos list is empty")
-            photosAdapter.clearPhotoList()
-        } else {
-            Timber.d("Adding photo to adapter")
-            photosAdapter.addPhotos(photos)
-        }
+        photosAdapter.submitList(photos)
         hideProgress()
     }
 
@@ -165,7 +159,8 @@ class PhotosFragment: Fragment() {
             val photo = intent.getParcelableExtra<PhotoUI>(EXTRA_PHOTO)
             if (photo != null && photo.id.isNotEmpty()) {
                 Timber.d("BROADCAST RECEIVER sending photo $photo")
-                photosAdapter.addPhoto(photo)
+                photosViewModel.addPhoto(photo)
+                // TODO do we need this?
                 binding.recyclerView.smoothScrollToPosition(0)
             }
         }

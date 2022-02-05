@@ -1,4 +1,4 @@
-package fr.northborders.walktracker.features.photos.data.network
+package fr.northborders.walktracker.features.photos.data
 
 import arrow.core.Either
 import arrow.core.Either.Left
@@ -9,6 +9,7 @@ import fr.northborders.walktracker.core.exception.Failure.NetworkConnection
 import fr.northborders.walktracker.core.exception.Failure.DatabaseError
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.features.photos.data.db.PhotoDao
+import fr.northborders.walktracker.features.photos.data.network.PhotoService
 import fr.northborders.walktracker.features.photos.data.network.model.PhotoListDto
 import fr.northborders.walktracker.features.photos.domain.PhotoRepository
 import fr.northborders.walktracker.features.photos.domain.model.Photo
@@ -75,23 +76,5 @@ class PhotoRepositoryImpl @Inject constructor(
             }
         }
         return Photo("", "", "", "")
-//        val data = response.body()
-//        if (data?.photos != null) {
-//            val photosFromDb = photoDao.getAllPhotos()
-//            if (photosFromDb.isEmpty()) {
-//                val photoToInsert = data.photos.photo.random()
-//                photoDao.insert(photoToInsert.toPhotoEntity())
-//                return photoToInsert.toPhoto()
-//            } else {
-//                for (photo in data.photos.photo) {
-//                    if (photosFromDb.all { photoEntity -> photoEntity.id != photo.id }) {
-//                        // return the photo from server if not found in db
-//                        photoDao.insert(photo.toPhotoEntity())
-//                        return photo.toPhoto()
-//                    }
-//                }
-//            }
-//        }
-//        return Photo("", "", "", "")
     }
 }
