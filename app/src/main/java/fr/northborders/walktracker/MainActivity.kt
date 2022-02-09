@@ -1,10 +1,13 @@
-package fr.northborders.walktracker.features.photos.presentation
+package fr.northborders.walktracker
 
 import android.Manifest
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.NavigationUI
 import dagger.hilt.android.AndroidEntryPoint
 import fr.northborders.walktracker.core.util.Constants
 import fr.northborders.walktracker.R
@@ -15,12 +18,16 @@ import pub.devrel.easypermissions.EasyPermissions
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
+
+    lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding: ActivityMainBinding = DataBindingUtil.setContentView(
+        binding = DataBindingUtil.setContentView(
             this,
             R.layout.activity_main
         )
+        setUpNavigation()
         requestPermissions()
     }
 
@@ -41,6 +48,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
+    private fun setUpNavigation() {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
+        NavigationUI.setupWithNavController(binding.bottomNav, navHostFragment.findNavController())
     }
 
     private fun requestPermissions() {

@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WalkTracker">
         <activity
-            android:name="fr.northborders.walktracker.features.photos.presentation.MainActivity"
+            android:name="fr.northborders.walktracker.MainActivity"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>

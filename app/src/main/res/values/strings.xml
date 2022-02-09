@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">WalkTracker</string>
     <string name="start">Start</string>
+    <string name="pause">Pause</string>
     <string name="stop">Stop</string>
+    <string name="photos">Photos</string>
+    <string name="tracking">Tracking</string>
     <string name="delete_photos">Delete photos</string>
     <string name="walk_in_progress">Walk in progress</string>
     <string name="permission_rationale">You need to accept location permissions to use this app.</string>

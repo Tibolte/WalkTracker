@@ -18,7 +18,7 @@ import fr.northborders.walktracker.R
 import fr.northborders.walktracker.core.util.Utils
 import fr.northborders.walktracker.features.photos.domain.GetPhotosForLocation
 import fr.northborders.walktracker.features.photos.domain.PhotoRepository
-import fr.northborders.walktracker.features.photos.presentation.MainActivity
+import fr.northborders.walktracker.MainActivity
 
 @Module
 @InstallIn(ServiceComponent::class)

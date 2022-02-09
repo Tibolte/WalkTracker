@@ -18,7 +18,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:context=".features.photos.presentation.MainActivity"
+            tools:context=".MainActivity"
             tools:itemCount="20"
             tools:listitem="@layout/item_photo" />
 

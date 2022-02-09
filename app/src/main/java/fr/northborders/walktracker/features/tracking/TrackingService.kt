@@ -61,17 +61,20 @@ class TrackingService : LifecycleService() {
     lateinit var locationCallback: LocationCallback
 
     private var timeWalkInSeconds = MutableLiveData<Long>()
-    private var timeWalkInMillis: Long = 0L
+    private var timeWalked = 0L
+    private var lapTime = 0L
     private var isTracking: Boolean = false
+    private var isTimerEnabled = false
     private var lastSecondTimestamp = 0L
 
     companion object {
         var isServiceRunning = false
+        var timeWalkInMillis = MutableLiveData<Long>()
     }
 
     private fun postInitialValues() {
         timeWalkInSeconds.postValue(0L)
-        timeWalkInMillis = 0L
+        timeWalkInMillis.postValue(0L)
         isTracking = false
         lastSecondTimestamp = 0L
     }
@@ -105,7 +108,10 @@ class TrackingService : LifecycleService() {
                     Timber.d("ACTION_START_OR_RESUME_SERVICE")
                     startForegroundService()
                 }
-                ACTION_PAUSE_SERVICE -> Timber.d("ACTION_PAUSE_SERVICE")
+                ACTION_PAUSE_SERVICE -> {
+                    Timber.d("ACTION_PAUSE_SERVICE")
+                    pauseService()
+                }
                 ACTION_STOP_SERVICE -> {
                     Timber.d("ACTION_STOP_SERVICE")
                     stopService()
@@ -121,6 +127,11 @@ class TrackingService : LifecycleService() {
         isServiceRunning = false
     }
 
+    private fun pauseService() {
+        isTracking = false
+        isTimerEnabled = false
+    }
+
     private fun stopService() {
         isServiceRunning = false
         postInitialValues()
@@ -133,6 +144,7 @@ class TrackingService : LifecycleService() {
     private fun startForegroundService() {
         isTracking = true
         isServiceRunning = true
+        isTimerEnabled = true
         startTimer()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -151,17 +163,21 @@ class TrackingService : LifecycleService() {
 
         CoroutineScope(Dispatchers.Main).launch {
             while(isTracking) {
-                timeWalkInMillis = System.currentTimeMillis() - timeStarted
+                lapTime = System.currentTimeMillis() - timeStarted
 
-                if (timeWalkInMillis >= lastSecondTimestamp + 1000L) {
+                timeWalkInMillis.postValue(timeWalked + lapTime)
+
+                if (timeWalkInMillis.value!! >= lastSecondTimestamp + 1000L) {
                     timeWalkInSeconds.postValue(timeWalkInSeconds.value!! + 1)
                     lastSecondTimestamp += 1000L
                 }
 
                 Timber.d("Time walked: ${timeWalkInSeconds.value}")
+                Timber.d("lap time: ${lapTime/1000}")
 
                 delay(TIMER_UPDATE_INTERVAL)
             }
+            timeWalked += lapTime
         }
     }
 

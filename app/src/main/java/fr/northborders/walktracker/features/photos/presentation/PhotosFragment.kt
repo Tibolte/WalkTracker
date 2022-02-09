@@ -17,6 +17,7 @@ import fr.northborders.walktracker.R
 import fr.northborders.walktracker.core.exception.Failure
 import fr.northborders.walktracker.core.extension.failure
 import fr.northborders.walktracker.core.extension.observe
+import fr.northborders.walktracker.core.util.Constants.ACTION_PAUSE_SERVICE
 import fr.northborders.walktracker.databinding.FragmentPhotoListBinding
 import fr.northborders.walktracker.features.tracking.TrackingService
 import fr.northborders.walktracker.features.photos.presentation.model.PhotoUI
@@ -79,13 +80,13 @@ class PhotosFragment: Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_main, menu)
 
-        val isServiceRunning = TrackingService.isServiceRunning
-
-        menu.findItem(R.id.action_start_stop).title = if (isServiceRunning) {
-            getString(R.string.stop)
-        } else {
-            getString(R.string.start)
-        }
+//        val isServiceRunning = TrackingService.isServiceRunning
+//
+//        menu.findItem(R.id.action_start_stop).title = if (isServiceRunning) {
+//            getString(R.string.stop)
+//        } else {
+//            getString(R.string.start)
+//        }
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -94,11 +95,14 @@ class PhotosFragment: Fragment() {
         if (item.title == requireContext().getString(R.string.start)) {
             Timber.d("Btn start clicked")
             sendServiceCommand(ACTION_START_OR_RESUME_SERVICE)
-            item.title = requireContext().getString(R.string.stop)
+            //item.title = requireContext().getString(R.string.stop)
         } else if (item.title == requireContext().getString(R.string.stop)) {
             Timber.d("Btn stop clicked")
             sendServiceCommand(ACTION_STOP_SERVICE)
-            item.title = requireContext().getString(R.string.start)
+            //item.title = requireContext().getString(R.string.start)
+        } else if (item.title == requireContext().getString(R.string.pause)) {
+            Timber.d("Btn Pause clicked")
+            sendServiceCommand(ACTION_PAUSE_SERVICE)
         } else if (item.title == getString(R.string.delete_photos)) {
             Timber.d("Btn delete photos clicked")
             deletePhotosList()

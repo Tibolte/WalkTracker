@@ -8,4 +8,8 @@
         android:id="@+id/photosFragment"
         android:name="fr.northborders.walktracker.features.photos.presentation.PhotosFragment"
         android:label="PhotosFragment" />
+    <fragment
+        android:id="@+id/trackingFragment"
+        android:name="fr.northborders.walktracker.features.tracking.presentation.TrackingFragment"
+        android:label="TrackingFragment" />
 </navigation>
