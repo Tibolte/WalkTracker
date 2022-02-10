@@ -77,7 +77,10 @@ dependencies {
     implementation "com.google.dagger:hilt-android:$hiltVersion"
     kapt "com.google.dagger:hilt-compiler:$hiltVersion"
     implementation "com.google.android.gms:play-services-location:$playServicesLocationVersion"
+    implementation 'com.google.android.gms:play-services-maps:18.0.2'
     implementation 'pub.devrel:easypermissions:3.0.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.0'
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.0"
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation "com.google.truth:truth:1.0.1"

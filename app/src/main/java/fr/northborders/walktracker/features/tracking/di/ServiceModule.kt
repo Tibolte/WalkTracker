@@ -23,12 +23,12 @@ import fr.northborders.walktracker.MainActivity
 @Module
 @InstallIn(ServiceComponent::class)
 class ServiceModule {
-
-    @ServiceScoped
-    @Provides
-    fun provideFusedLocationProviderClient(
-        @ApplicationContext app: Context
-    ) = FusedLocationProviderClient(app)
+//
+//    @ServiceScoped
+//    @Provides
+//    fun provideFusedLocationProviderClient(
+//        @ApplicationContext app: Context
+//    ) = FusedLocationProviderClient(app)
 
     @ServiceScoped
     @Provides

@@ -10,5 +10,7 @@
     <string name="permission_rationale">You need to accept location permissions to use this app.</string>
     <string name="failure_network_connection">No Network Connection.</string>
     <string name="failure_server_error">Server Error</string>
+    <string name="failure_location_error">Couldn\'t get location</string>
     <string name="failure_photos_list_unavailable">Photos Unavailable.</string>
+    <string name="google_maps_key">AIzaSyBPX-qSWDyvlX2byiwGF6QaOT3SFG9D16E</string>
 </resources>

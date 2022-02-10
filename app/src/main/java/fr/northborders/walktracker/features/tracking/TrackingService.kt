@@ -6,32 +6,23 @@ import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_LOW
 import android.content.Intent
 import android.os.Build
-import android.os.Looper
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import fr.northborders.walktracker.core.util.Constants.ACTION_PAUSE_SERVICE
 import fr.northborders.walktracker.core.util.Constants.ACTION_START_OR_RESUME_SERVICE
 import fr.northborders.walktracker.core.util.Constants.ACTION_STOP_SERVICE
 import fr.northborders.walktracker.core.util.Constants.EXTRA_PHOTO
-import fr.northborders.walktracker.core.util.Constants.FASTEST_INTERVAL_TIME
 import fr.northborders.walktracker.core.util.Constants.INTENT_BROADCAST_PHOTO
-import fr.northborders.walktracker.core.util.Constants.INTERVAL_TIME
 import fr.northborders.walktracker.core.util.Constants.NOTIFICATION_CHANNEL_ID
 import fr.northborders.walktracker.core.util.Constants.NOTIFICATION_CHANNEL_NAME
 import fr.northborders.walktracker.core.util.Constants.NOTIFICATION_ID
-import fr.northborders.walktracker.core.util.Constants.SMALLEST_DISPLACEMENT_100_METERS
 import fr.northborders.walktracker.core.util.Constants.TIMER_UPDATE_INTERVAL
 import fr.northborders.walktracker.core.exception.Failure
+import fr.northborders.walktracker.core.platform.locationFlow
 import fr.northborders.walktracker.core.util.Utils
 import fr.northborders.walktracker.features.photos.domain.GetPhotosForLocation
 import fr.northborders.walktracker.features.photos.domain.GetPhotosForLocation.Params
@@ -39,9 +30,10 @@ import fr.northborders.walktracker.features.photos.domain.model.Photo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -49,16 +41,18 @@ class TrackingService : LifecycleService() {
 
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+
     @Inject
     lateinit var notificationManager: NotificationManager
+
     @Inject
     lateinit var notificationBuilder: NotificationCompat.Builder
+
     @Inject
     lateinit var notificationObserver: Observer<Long>
+
     @Inject
     lateinit var getPhotosForLocation: GetPhotosForLocation
-
-    lateinit var locationCallback: LocationCallback
 
     private var timeWalkInSeconds = MutableLiveData<Long>()
     private var timeWalked = 0L
@@ -82,23 +76,6 @@ class TrackingService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         postInitialValues()
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                super.onLocationResult(locationResult)
-                Timber.d("GOT NEW LOCATION: $locationResult!!.lastLocation")
-
-                val lastLocation = locationResult.lastLocation
-                val latitude = lastLocation.latitude.toBigDecimal().toPlainString()
-                val longitude = lastLocation.longitude.toBigDecimal().toPlainString()
-                getPhotosForLocation(Params(latitude, longitude), lifecycleScope) {
-                    it.fold (
-                            ::handlePhotoError,
-                            ::handleNewPhoto
-                    )
-                }
-            }
-        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -136,7 +113,6 @@ class TrackingService : LifecycleService() {
         isServiceRunning = false
         postInitialValues()
         timeWalkInSeconds.removeObserver(notificationObserver)
-        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         stopForeground(true)
         stopSelf()
     }
@@ -162,7 +138,7 @@ class TrackingService : LifecycleService() {
         val timeStarted = System.currentTimeMillis()
 
         CoroutineScope(Dispatchers.Main).launch {
-            while(isTracking) {
+            while (isTracking) {
                 lapTime = System.currentTimeMillis() - timeStarted
 
                 timeWalkInMillis.postValue(timeWalked + lapTime)
@@ -173,7 +149,7 @@ class TrackingService : LifecycleService() {
                 }
 
                 Timber.d("Time walked: ${timeWalkInSeconds.value}")
-                Timber.d("lap time: ${lapTime/1000}")
+                Timber.d("lap time: ${lapTime / 1000}")
 
                 delay(TIMER_UPDATE_INTERVAL)
             }
@@ -193,15 +169,24 @@ class TrackingService : LifecycleService() {
     @SuppressLint("MissingPermission")
     private fun subscribeToLocationUpdates() {
         if (Utils.hasLocationPermissions(this)) {
-            val locationRequest = LocationRequest.create().apply {
-                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-                smallestDisplacement = SMALLEST_DISPLACEMENT_100_METERS // 100 meters
-                interval = TimeUnit.SECONDS.toMillis(INTERVAL_TIME.toLong())
-                fastestInterval = TimeUnit.SECONDS.toMillis(FASTEST_INTERVAL_TIME.toLong())
-            }
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback,
-                    Looper.getMainLooper()
-            )
+            fusedLocationProviderClient.locationFlow()
+                .conflate()
+                .catch { e ->
+                    Timber.e("Unable to get location", e)
+                }
+                .asLiveData()
+                .observe(this, Observer { location ->
+                    Timber.d("Got new location: $location")
+
+                    val latitude = location.latitude.toBigDecimal().toPlainString()
+                    val longitude = location.longitude.toBigDecimal().toPlainString()
+                    getPhotosForLocation(Params(latitude, longitude), lifecycleScope) {
+                        it.fold(
+                            ::handlePhotoError,
+                            ::handleNewPhoto
+                        )
+                    }
+                })
         }
     }
 

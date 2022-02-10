@@ -17,6 +17,8 @@ object Constants {
     const val INTERVAL_TIME = 60
     const val FASTEST_INTERVAL_TIME = 30
 
+    const val MAP_ZOOM = 15f
+
     const val EXTRA_PHOTO = "photo"
     const val INTENT_BROADCAST_PHOTO = "intent_broadcast_photo"
 }

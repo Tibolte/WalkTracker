@@ -2,12 +2,14 @@ package fr.northborders.walktracker.core.di
 
 import android.content.Context
 import androidx.room.Room
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ServiceScoped
 import dagger.hilt.components.SingletonComponent
 import fr.northborders.walktracker.core.platform.NetworkHandler
 import fr.northborders.walktracker.features.photos.data.db.PhotoDao
@@ -74,4 +76,10 @@ class ApplicationModule {
     @Singleton
     fun providePhotoRepository(networkHandler: NetworkHandler, photoDao: PhotoDao, photoService: PhotoService) =
         PhotoRepositoryImpl(networkHandler, photoService, photoDao) as PhotoRepository
+
+    @Provides
+    @Singleton
+    fun provideFusedLocationProviderClient(
+        @ApplicationContext app: Context
+    ) = FusedLocationProviderClient(app)
 }

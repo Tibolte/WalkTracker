@@ -58,7 +58,7 @@ class PhotosFragment: Fragment() {
         binding.recyclerView.adapter = photosAdapter
 
         // clear photos first
-        photosAdapter.submitList(listOf())
+        //photosAdapter.submitList(listOf())
         loadPhotosList()
 
         return binding.root
