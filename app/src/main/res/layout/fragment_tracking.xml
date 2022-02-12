@@ -31,7 +31,7 @@
             tools:text="00:00:00:00" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStart"
+            android:id="@+id/btnToggleWalk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/start"
@@ -42,24 +42,16 @@
             app:layout_constraintTop_toBottomOf="@+id/txt_timer" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPause"
+            android:id="@+id/btnFinishWalk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/pause"
+            android:text="@string/finish_walk"
+            tools:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnStart" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/stop"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnPause" />
+            app:layout_constraintTop_toBottomOf="@+id/btnToggleWalk" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

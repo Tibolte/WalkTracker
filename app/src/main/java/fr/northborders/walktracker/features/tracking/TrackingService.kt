@@ -5,12 +5,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_LOW
 import android.content.Intent
+import android.location.Location
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 import fr.northborders.walktracker.core.util.Constants.ACTION_PAUSE_SERVICE
 import fr.northborders.walktracker.core.util.Constants.ACTION_START_OR_RESUME_SERVICE
@@ -25,7 +27,6 @@ import fr.northborders.walktracker.core.exception.Failure
 import fr.northborders.walktracker.core.platform.locationFlow
 import fr.northborders.walktracker.core.util.Utils
 import fr.northborders.walktracker.features.photos.domain.GetPhotosForLocation
-import fr.northborders.walktracker.features.photos.domain.GetPhotosForLocation.Params
 import fr.northborders.walktracker.features.photos.domain.model.Photo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,9 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+
+typealias Polyline = MutableList<LatLng>
+typealias Polylines = MutableList<Polyline>
 
 @AndroidEntryPoint
 class TrackingService : LifecycleService() {
@@ -57,19 +61,21 @@ class TrackingService : LifecycleService() {
     private var timeWalkInSeconds = MutableLiveData<Long>()
     private var timeWalked = 0L
     private var lapTime = 0L
-    private var isTracking: Boolean = false
     private var isTimerEnabled = false
     private var lastSecondTimestamp = 0L
 
     companion object {
         var isServiceRunning = false
         var timeWalkInMillis = MutableLiveData<Long>()
+        val pathPoints = MutableLiveData<Polylines>()
+        val isTracking = MutableLiveData<Boolean>()
     }
 
     private fun postInitialValues() {
         timeWalkInSeconds.postValue(0L)
         timeWalkInMillis.postValue(0L)
-        isTracking = false
+        pathPoints.postValue(mutableListOf())
+        isTracking.postValue(false)
         lastSecondTimestamp = 0L
     }
 
@@ -105,7 +111,7 @@ class TrackingService : LifecycleService() {
     }
 
     private fun pauseService() {
-        isTracking = false
+        isTracking.postValue(false)
         isTimerEnabled = false
     }
 
@@ -118,7 +124,7 @@ class TrackingService : LifecycleService() {
     }
 
     private fun startForegroundService() {
-        isTracking = true
+        isTracking.postValue(true)
         isServiceRunning = true
         isTimerEnabled = true
         startTimer()
@@ -134,11 +140,30 @@ class TrackingService : LifecycleService() {
         timeWalkInSeconds.observe(this, notificationObserver)
     }
 
+    private fun addEmptyPolyline() = pathPoints.value?.apply {
+        add(mutableListOf())
+        pathPoints.postValue(this)
+    } ?: pathPoints.postValue(mutableListOf(mutableListOf()))
+
+    private fun addPathPoint(location: Location?) {
+        location?.let {
+            val pos = LatLng(location.latitude, location.longitude)
+            pathPoints.value?.apply {
+                if (!last().contains(pos)) {
+                    last().add(pos)
+                    pathPoints.postValue(this)
+                }
+            }
+        }
+    }
+
     private fun startTimer() {
+        addEmptyPolyline()
+
         val timeStarted = System.currentTimeMillis()
 
         CoroutineScope(Dispatchers.Main).launch {
-            while (isTracking) {
+            while (isTracking.value!!) {
                 lapTime = System.currentTimeMillis() - timeStarted
 
                 timeWalkInMillis.postValue(timeWalked + lapTime)
@@ -177,14 +202,17 @@ class TrackingService : LifecycleService() {
                 .asLiveData()
                 .observe(this, Observer { location ->
                     Timber.d("Got new location: $location")
-
-                    val latitude = location.latitude.toBigDecimal().toPlainString()
-                    val longitude = location.longitude.toBigDecimal().toPlainString()
-                    getPhotosForLocation(Params(latitude, longitude), lifecycleScope) {
-                        it.fold(
-                            ::handlePhotoError,
-                            ::handleNewPhoto
-                        )
+                    if (isTimerEnabled) {
+                        Timber.d("ADD NEW POLYLINE: $location")
+                        addPathPoint(location)
+                        val latitude = location.latitude.toBigDecimal().toPlainString()
+                        val longitude = location.longitude.toBigDecimal().toPlainString()
+                        getPhotosForLocation(GetPhotosForLocation.Params(latitude, longitude), lifecycleScope) {
+                            it.fold(
+                                ::handlePhotoError,
+                                ::handleNewPhoto
+                            )
+                        }
                     }
                 })
         }
@@ -195,6 +223,7 @@ class TrackingService : LifecycleService() {
     }
 
     private fun handleNewPhoto(photo: Photo) {
+        // TODO observe live data as well?
         Timber.d("Retrieved photo for last location: $photo")
         val intent = Intent(INTENT_BROADCAST_PHOTO)
         intent.putExtra(EXTRA_PHOTO, photo.toPhotoUI())

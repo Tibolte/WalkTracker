@@ -1,5 +1,7 @@
 package fr.northborders.walktracker.core.util
 
+import android.graphics.Color
+
 object Constants {
     const val ACTION_START_OR_RESUME_SERVICE = "ACTION_START_OR_RESUME_SERVICE"
     const val ACTION_PAUSE_SERVICE = "ACTION_PAUSE_SERVICE"
@@ -18,6 +20,8 @@ object Constants {
     const val FASTEST_INTERVAL_TIME = 30
 
     const val MAP_ZOOM = 15f
+    const val POLYLINE_COLOR = Color.RED
+    const val POLYLINE_WIDTH = 8f
 
     const val EXTRA_PHOTO = "photo"
     const val INTENT_BROADCAST_PHOTO = "intent_broadcast_photo"

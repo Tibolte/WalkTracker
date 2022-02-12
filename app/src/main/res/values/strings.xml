@@ -3,6 +3,7 @@
     <string name="start">Start</string>
     <string name="pause">Pause</string>
     <string name="stop">Stop</string>
+    <string name="finish_walk">Finish walk</string>
     <string name="photos">Photos</string>
     <string name="tracking">Tracking</string>
     <string name="delete_photos">Delete photos</string>
